@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="The $MOSS flywheel: how the game and token feed each other.">
+<meta property="og:title" content="Moss Flywheel">
+<meta property="og:description" content="The $MOSS flywheel: how the game and token feed each other.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@MossPlay">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>Moss Flywheel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap">
+<style>
+/* Layout: one dark scroll in the game's own world. Animated two-ring wheel up top, then each loop, the money split, a live simulator and the brakes. Single dark look by choice. */
+:root{
+  --night:#120d26; --plum:#1d1336; --plum-2:#2a1b4a; --edge:#4a3270;
+  --glow:#7ff3e6; --pink:#ff86b5; --gold:#ffd36b; --lilac:#c9a8ff;
+  --cream:#fff1dc; --muted:#b9a9d8; --up:#7ee2b0; --down:#ff8a8a;
+  --f-pixel:"Pixelify Sans","Courier New",monospace;
+  --f-body:"Quicksand","Trebuchet MS",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--night);color:var(--cream);font-family:var(--f-body);font-size:16px;line-height:1.6;font-weight:600}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-pixel);font-weight:600;margin:0;text-wrap:balance;line-height:1.05}
+.eyebrow{font-family:var(--f-pixel);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+p{margin:0;max-width:62ch}
+.muted{color:var(--muted)}
+section{padding-block:56px;border-top:2px dashed #2f2150}
+.px{background:var(--plum);border:3px solid var(--night);box-shadow:inset 0 0 0 3px var(--plum-2),0 0 0 3px var(--edge),0 6px 0 3px rgba(0,0,0,.35);border-radius:4px}
+:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr minmax(0,520px);gap:32px;align-items:center;padding-block:48px 40px}
+.hero h1{font-size:clamp(44px,7vw,80px);color:var(--cream);text-shadow:0 4px 0 #5b2d6f,0 8px 0 #2a1640}
+.hero h1 span{color:var(--glow);display:block;text-shadow:0 4px 0 #1c6d6a,0 8px 0 #0f3a3f}
+.hero .lead{font-size:18px;margin-top:18px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:22px;font-size:14px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.wheel{width:100%;max-width:520px;aspect-ratio:1;justify-self:center}
+.wheel svg{width:100%;height:100%;display:block;overflow:visible}
+.node-t{font-family:var(--f-pixel);font-size:15px;fill:var(--cream)}
+.node-s{font-family:var(--f-body);font-weight:700;font-size:11px;fill:var(--muted)}
+@media (max-width:860px){.hero{grid-template-columns:1fr}.wheel{max-width:440px}}
+
+/* steps */
+.h2row{display:grid;gap:10px;margin-bottom:26px}
+.h2row h2{font-size:clamp(28px,4.4vw,42px)}
+.steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;counter-reset:s}
+.steps.six{grid-template-columns:repeat(3,minmax(0,1fr))}
+.step{padding:16px;display:grid;gap:6px;align-content:start;position:relative}
+.step b{font-family:var(--f-pixel);font-size:18px;font-weight:500}
+.step .n{font-family:var(--f-pixel);font-size:12px;color:var(--c,var(--glow));letter-spacing:.1em}
+.step .fig{font-family:var(--f-pixel);color:var(--c,var(--glow));font-size:14px}
+.step small{color:var(--muted);font-size:13.5px;line-height:1.5}
+.tagnow{display:inline-block;font-family:var(--f-pixel);font-size:11px;padding:1px 7px;border-radius:3px;background:rgba(126,226,176,.15);color:var(--up);letter-spacing:.06em}
+.tagnew{display:inline-block;font-family:var(--f-pixel);font-size:11px;padding:1px 7px;border-radius:3px;background:rgba(255,211,107,.15);color:var(--gold);letter-spacing:.06em}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.steps.six{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.steps,.steps.six{grid-template-columns:1fr}}
+
+/* split */
+.split{display:flex;height:54px;border-radius:4px;overflow:hidden;border:3px solid var(--night);box-shadow:0 0 0 3px var(--edge)}
+.split div{display:grid;place-items:center;font-family:var(--f-pixel);font-size:15px;color:var(--night);min-width:0;transition:flex-basis .4s}
+.splitk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.splitk div{padding:12px 14px;display:grid;gap:4px}
+.splitk b{font-family:var(--f-pixel);font-size:17px;font-weight:500}
+.splitk small{color:var(--muted);font-size:13.5px;line-height:1.5}
+@media (max-width:820px){.splitk{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.splitk{grid-template-columns:1fr}}
+
+/* ledger */
+.ledger{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ledger .px{padding:16px}
+.ledger h3{font-size:20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ledger ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ledger li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding-bottom:8px;border-bottom:1px dashed #3a2a5a;font-size:14.5px}
+.ledger li:last-child{border-bottom:0;padding-bottom:0}
+.ledger li small{grid-column:1/-1;color:var(--muted);font-size:13px}
+@media (max-width:760px){.ledger{grid-template-columns:1fr}}
+
+/* sim */
+.sim{display:grid;grid-template-columns:minmax(0,340px) 1fr;gap:16px}
+.sim .px{padding:18px}
+.ctl{display:grid;gap:4px;margin-bottom:14px}
+.ctl label{display:flex;justify-content:space-between;font-size:14px}
+.ctl output{font-family:var(--f-pixel);color:var(--gold)}
+input[type=range]{width:100%;accent-color:#43d3c4}
+.out{display:grid;gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpis div{padding:12px;background:rgba(0,0,0,.22);border-radius:4px;display:grid;gap:2px;min-width:0}
+.kpis span{font-size:12px;color:var(--muted)}
+.kpis b{font-family:var(--f-pixel);font-weight:500;font-size:clamp(17px,2.4vw,24px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.chart{width:100%;height:230px;display:block;background:#160f2e;border-radius:4px}
+.note{font-size:13px;color:var(--muted)}
+.flag{padding:10px 12px;border-left:3px solid var(--gold);background:rgba(255,211,107,.08);font-size:14px}
+.flag.bad{border-color:var(--down);background:rgba(255,138,138,.08)}
+.flag.good{border-color:var(--up);background:rgba(126,226,176,.08)}
+@media (max-width:820px){.sim{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* brakes */
+.brakes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.brakes .px{padding:16px;display:grid;gap:6px}
+.brakes b{font-family:var(--f-pixel);font-size:18px;font-weight:500;color:var(--pink)}
+.brakes small{color:var(--muted);font-size:14px;line-height:1.5}
+@media (max-width:700px){.brakes{grid-template-columns:1fr}}
+
+.build{display:grid;gap:10px}
+.build .px{padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline}
+.build .px b{font-family:var(--f-pixel);font-weight:500;font-size:17px}
+.build .px small{grid-column:2;color:var(--muted);font-size:14px}
+.build .px .tagnew,.build .px .tagnow{grid-row:1/3}
+footer{padding-block:28px 48px;border-top:2px dashed #2f2150;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Moss · game + token design</div>
+      <h1 style="margin-top:12px">The Moss<span>Flywheel</span></h1>
+      <p class="lead">Two loops that push each other. Inside the game, every harvest makes the next one bigger. Around the game, every $MOSS players spend feeds burns, prizes and stakers, which brings in more players.</p>
+      <div class="legend">
+        <span><i style="background:var(--glow)"></i>Farmer loop · in the game today</span>
+        <span><i style="background:var(--gold)"></i>Token loop · to build</span>
+      </div>
+    </div>
+    <div class="wheel"><svg id="wheel" viewBox="-260 -260 520 520" role="img" aria-label="Two circular loops. Inner loop: Farm, Harvest, Sell, Upgrade and stake, back to Farm. Outer loop: Players, Spend in game, Root Treasury, Burn and rewards, Scarcer $MOSS and bigger prizes, back to Players."></svg></div>
+  </header>
+
+  <section id="farmer">
+    <div class="h2row">
+      <div class="eyebrow">Loop 1 · the snowball</div>
+      <h2>Every harvest pays for a bigger one.</h2>
+      <p class="muted">This loop already runs in the game. The numbers are the game's real ones.</p>
+    </div>
+    <div class="steps">
+      <div class="px step"><span class="n">STEP 1</span><b>Farm</b><span class="fig">20 $MOSS → 1 glowcap spore</span><small>Clear the field, till and plant. Energy limits how much you can do each day.</small></div>
+      <div class="px step"><span class="n">STEP 2</span><b>Harvest</b><span class="fig">~40 per glowcap</span><small>Watered crops grow overnight. Glowcaps are ready in 3 days, moonmorels in 8 at ~270 each.</small></div>
+      <div class="px step"><span class="n">STEP 3</span><b>Sell smart</b><span class="fig">prices move nightly</span><small>Ship at the close or sell on the Exchange. Selling into a rally can add 30% or more.</small></div>
+      <div class="px step"><span class="n">STEP 4</span><b>Reinvest</b><span class="fig">can 900 · pack 1,200 · tonic 1,500</span><small>Bigger can, more bag space, more energy and pricier seeds all raise what you can produce per day.</small></div>
+      <div class="px step"><span class="n">STEP 5</span><b>Stake the rest</b><span class="fig">Root Vault · 1.2% a night</span><small>Idle coins compound. Withdraw for the next big seed order. Then back to step 1, bigger.</small></div>
+    </div>
+  </section>
+
+  <section id="token">
+    <div class="h2row">
+      <div class="eyebrow">Loop 2 · the flywheel</div>
+      <h2>Spending in the game feeds the token.</h2>
+      <p class="muted">This connects $MOSS to a real token. The rewards come from what players spend, not from printing more.</p>
+    </div>
+    <div class="steps six">
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 1</span><b>Players join</b><small>A cozy game people want to play. Free to start, with a wallet only needed to trade or claim prizes.</small></div>
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 2</span><b>They spend $MOSS</b><small>Premium spores, extra land plots, tool upgrades, golden cosmetics, guild halls. Real reasons to hold and use the token.</small></div>
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 3</span><b>Root Treasury fills</b><small>Every $MOSS spent in a sink goes to the treasury. The game also adds its Exchange fees (5%).</small></div>
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 4</span><b>It splits four ways</b><small>Burn, a season prize pool, real yield for Vault stakers and a slice for building. See the split below.</small></div>
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 5</span><b>Scarcer and richer</b><small>Burns shrink supply. Prize pools grow with activity. Staking yield rises with spending, not with inflation.</small></div>
+      <div class="px step" style="--c:var(--gold)"><span class="n">STEP 6</span><b>More players</b><small>Bigger prizes and a visible burn counter are reasons to tell friends. New players spend, and the wheel turns faster.</small></div>
+    </div>
+  </section>
+
+  <section id="split">
+    <div class="h2row">
+      <div class="eyebrow">Where spent $MOSS goes</div>
+      <h2>The treasury split.</h2>
+      <p class="muted">A starting point you can tune. Drag the sliders in the simulator to try others.</p>
+    </div>
+    <div class="split" id="splitbar" aria-label="Treasury split"></div>
+    <div class="splitk" id="splitk"></div>
+  </section>
+
+  <section id="ledger">
+    <div class="h2row">
+      <div class="eyebrow">Faucets and sinks</div>
+      <h2>More has to leave than arrive.</h2>
+      <p class="muted">A faucet creates $MOSS. A sink removes it or moves it to the treasury. If faucets beat sinks for long, the token inflates and the wheel slows.</p>
+    </div>
+    <div class="ledger">
+      <div class="px"><h3>Faucets <span class="tagnow">CAPPED</span></h3><ul>
+        <li><span>Selling crops, gems and forage</span><span>Main income</span><small>Paid from a daily emission budget that shrinks 10% each season.</small></li>
+        <li><span>Story goals and villager requests</span><span>One-time</span><small>Fixed rewards. Never repeatable for profit.</small></li>
+        <li><span>Season prizes</span><span>From treasury</span><small>Recycled from spending, so no new tokens.</small></li>
+        <li><span>Vault yield</span><span>From treasury</span><small>Real yield only. If nobody spends, yield falls toward zero.</small></li>
+      </ul></div>
+      <div class="px"><h3>Sinks <span class="tagnew">TO ADD</span></h3><ul>
+        <li><span>Premium spores</span><span>Rare crops</span><small>Moonmorels and seasonal spores only sold for $MOSS.</small></li>
+        <li><span>Land plots</span><span>Bigger farm</span><small>Expand the field. Price rises with each plot you own.</small></li>
+        <li><span>Tool and house upgrades</span><span>Time savers</span><small>Sprinklers, copper and gold tools, a bigger cap house.</small></li>
+        <li><span>Cosmetics</span><span>Status</span><small>Cap colors, pets, farm decorations. Pure flex, no power.</small></li>
+        <li><span>Exchange fee</span><span>5% of sales</span><small>Already in the game. Routes to the treasury.</small></li>
+        <li><span>Vault early exit</span><span>2% fee</span><small>Leaving within 7 nights pays remaining stakers.</small></li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="sim">
+    <div class="h2row">
+      <div class="eyebrow">Spin it</div>
+      <h2>Snowball simulator.</h2>
+      <p class="muted">Pick some starting numbers and watch a season play out. Illustrative only, not a forecast.</p>
+    </div>
+    <div class="sim">
+      <form class="px" id="simf" onsubmit="return false">
+        <div class="ctl"><label for="s-players">Players on day 1 <output id="o-players"></output></label><input type="range" id="s-players" min="50" max="5000" step="50" value="500"></div>
+        <div class="ctl"><label for="s-spend">$MOSS spent per player per day <output id="o-spend"></output></label><input type="range" id="s-spend" min="20" max="1000" step="10" value="150"></div>
+        <div class="ctl"><label for="s-viral">New players each prize-week brings <output id="o-viral"></output></label><input type="range" id="s-viral" min="0" max="40" step="1" value="12"></div>
+        <div class="ctl"><label for="s-churn">Players who quit each day <output id="o-churn"></output></label><input type="range" id="s-churn" min="0" max="10" step=".5" value="3"></div>
+        <div class="ctl"><label for="s-burn">Burn share <output id="o-burn"></output></label><input type="range" id="s-burn" min="0" max="70" step="5" value="40"></div>
+        <div class="ctl"><label for="s-prize">Prize pool share <output id="o-prize"></output></label><input type="range" id="s-prize" min="0" max="70" step="5" value="30"></div>
+        <div class="ctl" style="margin-bottom:0"><label for="s-stake">Staker share <output id="o-stake"></output></label><input type="range" id="s-stake" min="0" max="50" step="5" value="20"></div>
+        <p class="note" id="o-build" style="margin-top:10px"></p>
+      </form>
+      <div class="px out">
+        <div class="kpis">
+          <div><span>Players on day 28</span><b id="k-pl"></b></div>
+          <div><span>$MOSS burned</span><b id="k-burn"></b></div>
+          <div><span>Season prize pool</span><b id="k-prize"></b></div>
+          <div><span>Paid to stakers</span><b id="k-stake"></b></div>
+          <div><span>Daily spend, day 28</span><b id="k-daily"></b></div>
+          <div><span>Wheel</span><b id="k-dir"></b></div>
+        </div>
+        <canvas class="chart" id="chart" aria-label="Players and daily spend over a 28-day season"></canvas>
+        <div class="flag" id="flag"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="brakes">
+    <div class="h2row">
+      <div class="eyebrow">Keeping it honest</div>
+      <h2>Flywheels spin both ways.</h2>
+      <p class="muted">The same loop that snowballs up can snowball down if players leave. These rules keep it pointed the right way.</p>
+    </div>
+    <div class="brakes">
+      <div class="px"><b>Fun comes first</b><small>The wheel only turns if people want to play. If the only reason to play is the token, it stalls the moment the price drops.</small></div>
+      <div class="px"><b>Real yield only</b><small>Vault and prize rewards come out of what players spend. Nothing is promised. Quiet weeks pay less, and the page should say so.</small></div>
+      <div class="px"><b>Skill-based prizes</b><small>Season prizes go to top farmers by a mix of harvest, trading profit and quests, with a cap per wallet and anti-bot checks.</small></div>
+      <div class="px"><b>Shrinking emissions</b><small>The daily emission budget for selling crops drops each season, so early farmers can't flood the supply forever.</small></div>
+      <div class="px"><b>No power you can only buy</b><small>Upgrades save time, cosmetics show off. A free player can still reach the top of the season board.</small></div>
+      <div class="px"><b>Everything public</b><small>Show the treasury, total burned and the prize pool live, on a page anyone can check. Trust is part of the wheel.</small></div>
+    </div>
+  </section>
+
+  <section id="build">
+    <div class="h2row">
+      <div class="eyebrow">Wiring it into the game</div>
+      <h2>What to build next.</h2>
+    </div>
+    <div class="build">
+      <div class="px"><span class="tagnow">LIVE</span><b>Farm, Exchange, Vault, upgrades</b><small>Loop 1 works end to end in the current build.</small></div>
+      <div class="px"><span class="tagnew">NEXT</span><b>Root Treasury + burn counter</b><small>Route the 5% Exchange fee and all shop spending into a treasury shown in the village, with a running total burned.</small></div>
+      <div class="px"><span class="tagnew">NEXT</span><b>Harvest seasons</b><small>28-day seasons with a leaderboard and a prize pool that grows as players spend. The board shows live standings.</small></div>
+      <div class="px"><span class="tagnew">NEXT</span><b>Real-yield Vault</b><small>Change the Vault from a flat 1.2% to a share of treasury income, split by stake.</small></div>
+      <div class="px"><span class="tagnew">NEXT</span><b>New sinks</b><small>Land plots, sprinklers, golden tools, cosmetic caps and pets, guild halls.</small></div>
+      <div class="px"><span class="tagnew">LATER</span><b>On-chain $MOSS</b><small>Swap the in-game coin for a real token, with withdrawals, deposits and audited treasury contracts.</small></div>
+    </div>
+  </section>
+
+  <footer><a href="https://x.com/MossPlay" target="_blank" rel="noopener" style="color:var(--glow)">Follow @MossPlay on X</a> · Design concept for Moss. $MOSS is an in-game coin today. Simulator numbers are illustrative, not a forecast or a promise of returns.</footer>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+const mk = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+
+/* ---------- wheel ---------- */
+const svg = $('#wheel');
+const inner = { r: 118, col: '#7ff3e6', nodes: [['Farm', 'plant + water'], ['Harvest', 'crops ripen'], ['Sell', 'Exchange'], ['Upgrade', '+ stake']] };
+const outer = { r: 210, col: '#ffd36b', nodes: [['Players', 'join + play'], ['Spend', 'in-game sinks'], ['Treasury', 'collects $MOSS'], ['Burn + pay', 'prizes, stakers'], ['Scarcer', 'bigger prizes']] };
+const defs = mk('defs', {}, svg);
+const gr = mk('radialGradient', { id: 'core' }, defs); mk('stop', { offset: '0', 'stop-color': '#7ff3e6', 'stop-opacity': '.35' }, gr); mk('stop', { offset: '1', 'stop-color': '#7ff3e6', 'stop-opacity': '0' }, gr);
+mk('circle', { r: 80, fill: 'url(#core)' }, svg);
+[outer, inner].forEach(L => {
+  mk('circle', { r: L.r, fill: 'none', stroke: L.col, 'stroke-opacity': .22, 'stroke-width': 14 }, svg);
+  const g = mk('g', {}, svg); L.dash = mk('circle', { r: L.r, fill: 'none', stroke: L.col, 'stroke-width': 2.5, 'stroke-dasharray': '4 10', 'stroke-linecap': 'round' }, g);
+});
+// center mushroom
+const c = mk('g', { 'shape-rendering': 'crispEdges', transform: 'translate(-32,-34) scale(4)' }, svg);
+[[4, 1, 8, 1, '#1c6d6a'], [2, 2, 12, 1, '#1c6d6a'], [3, 2, 10, 1, '#43d3c4'], [1, 3, 14, 3, '#43d3c4'], [1, 6, 14, 1, '#1c6d6a'], [4, 3, 2, 2, '#e9fffb'], [9, 2, 2, 1, '#e9fffb'], [11, 4, 2, 1, '#e9fffb'], [5, 7, 6, 6, '#fff1dc'], [5, 7, 6, 1, '#d9c3a3'], [6, 9, 1, 1, '#24163f'], [9, 9, 1, 1, '#24163f'], [4, 13, 8, 1, '#2f6b55']].forEach(([x, y, w, h, f]) => mk('rect', { x, y, width: w, height: h, fill: f }, c));
+mk('text', { y: 50, 'text-anchor': 'middle', class: 'node-t', fill: '#ffd36b' }, svg).textContent = '$MOSS';
+function nodes(L, off) {
+  L.pos = L.nodes.map((n, i) => { const a = -Math.PI / 2 + off + i / L.nodes.length * Math.PI * 2; return { a, x: Math.cos(a) * L.r, y: Math.sin(a) * L.r, n }; });
+  L.els = L.pos.map(p => {
+    const g = mk('g', { transform: `translate(${p.x.toFixed(1)},${p.y.toFixed(1)})` }, svg);
+    const ring = mk('circle', { r: 30, fill: '#1d1336', stroke: L.col, 'stroke-width': 3 }, g);
+    mk('text', { y: 2, 'text-anchor': 'middle', class: 'node-t', style: 'font-size:13px' }, g).textContent = p.n[0];
+    mk('text', { y: 16, 'text-anchor': 'middle', class: 'node-s', style: 'font-size:9.5px' }, g).textContent = p.n[1];
+    return ring;
+  });
+}
+nodes(outer, 0); nodes(inner, Math.PI / 4);
+// coins traveling
+const coins = [];
+[[outer, 9, 1], [inner, 6, 1.5]].forEach(([L, n, sp]) => { for (let i = 0; i < n; i++) coins.push({ L, a: i / n * Math.PI * 2, sp, el: mk('rect', { width: 7, height: 7, x: -3.5, y: -3.5, rx: 1, fill: L.col }, svg) }); });
+let last = 0, rot = 0;
+function frame(now) {
+  const t = now / 1000, dt = Math.min(.05, t - (last || t)); last = t; rot += dt;
+  outer.dash.setAttribute('stroke-dashoffset', -rot * 30); inner.dash.setAttribute('stroke-dashoffset', -rot * 45);
+  coins.forEach(k => {
+    k.a += dt * .35 * k.sp; const x = Math.cos(k.a) * k.L.r, y = Math.sin(k.a) * k.L.r;
+    k.el.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${(k.a * 180 / Math.PI) % 360})`);
+  });
+  [outer, inner].forEach(L => L.pos.forEach((p, i) => {
+    const near = coins.some(k => k.L === L && Math.abs(((k.a - p.a) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI) < .12);
+    L.els[i].setAttribute('fill', near ? (L === outer ? '#3a2d14' : '#123a3a') : '#1d1336');
+  }));
+  if (!RM) requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- split + sim ---------- */
+const S = { players: 500, spend: 150, viral: 12, churn: 3, burn: 40, prize: 30, stake: 20 };
+const ids = ['players', 'spend', 'viral', 'churn', 'burn', 'prize', 'stake'];
+const fmt = n => n >= 1e9 ? (n / 1e9).toFixed(2) + 'B' : n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'K' : Math.round(n).toLocaleString('en-US');
+const COL = { burn: '#ff86b5', prize: '#ffd36b', stake: '#7ff3e6', build: '#c9a8ff' };
+function split() {
+  const build = Math.max(0, 100 - S.burn - S.prize - S.stake);
+  const parts = [['burn', S.burn, 'Burn', 'Removed forever. Total supply shrinks as the game gets busier.'], ['prize', S.prize, 'Season prizes', 'Paid to the top farmers each 28-day season. Grows with activity.'], ['stake', S.stake, 'Vault stakers', 'Real yield, split by how much each player has staked.'], ['build', build, 'Build fund', 'Art, servers, audits and new areas. Public and on-chain.']];
+  $('#splitbar').innerHTML = parts.map(([k, v, n]) => v ? `<div style="flex:${v} 1 0;background:${COL[k]}" title="${n} ${v}%">${v >= 8 ? v + '%' : ''}</div>` : '').join('');
+  $('#splitk').innerHTML = parts.map(([k, v, n, d]) => `<div class="px" style="box-shadow:inset 0 0 0 3px var(--plum-2),0 0 0 3px ${COL[k]}55"><b style="color:${COL[k]}">${v}% · ${n}</b><small>${d}</small></div>`).join('');
+  return build;
+}
+function clampSplit(changed) {
+  let over = S.burn + S.prize + S.stake - 100; if (over <= 0) return;
+  for (const k of ['stake', 'prize', 'burn']) { if (k === changed || over <= 0) continue; const cut = Math.min(over, S[k]); S[k] -= cut; over -= cut; $('#s-' + k).value = S[k]; }
+}
+function simulate() {
+  let pl = S.players; const days = [];
+  let burn = 0, prize = 0, stake = 0, weekPrize = 0;
+  for (let d = 1; d <= 28; d++) {
+    const daily = pl * S.spend;
+    burn += daily * S.burn / 100; const pz = daily * S.prize / 100; prize += pz; weekPrize += pz; stake += daily * S.stake / 100;
+    days.push({ d, pl, daily });
+    pl = pl * (1 - S.churn / 100);
+    if (d % 7 === 0) { const boost = Math.sqrt(weekPrize / 1000) * S.viral; pl += boost; weekPrize = 0; }
+  }
+  return { days, burn, prize, stake };
+}
+function draw(r) {
+  const c = $('#chart'), dpr = Math.min(2, devicePixelRatio || 1), W = c.clientWidth, H = c.clientHeight;
+  c.width = W * dpr; c.height = H * dpr; const x = c.getContext('2d'); x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const pad = { l: 48, r: 14, t: 16, b: 26 }, iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+  const maxP = Math.max(...r.days.map(d => d.pl)) * 1.12, X = i => pad.l + i / 27 * iw, Y = v => pad.t + ih - v / maxP * ih;
+  x.fillStyle = '#160f2e'; x.fillRect(0, 0, W, H);
+  x.font = '11px "Pixelify Sans", monospace'; x.fillStyle = '#b9a9d8'; x.strokeStyle = 'rgba(185,169,216,.12)';
+  for (let i = 0; i <= 4; i++) { const v = maxP * i / 4, y = Math.round(Y(v)) + .5; x.beginPath(); x.moveTo(pad.l, y); x.lineTo(W - pad.r, y); x.stroke(); x.fillText(fmt(v), 6, y + 4); }
+  [7, 14, 21, 28].forEach(d => { const xx = Math.round(X(d - 1)) + .5; x.strokeStyle = 'rgba(255,211,107,.25)'; x.setLineDash([3, 4]); x.beginPath(); x.moveTo(xx, pad.t); x.lineTo(xx, pad.t + ih); x.stroke(); x.setLineDash([]); x.fillStyle = '#ffd36b'; x.fillText('prizes', xx - 34, pad.t + 10); });
+  x.fillStyle = '#b9a9d8'; x.fillText('Day 1', pad.l, H - 8); x.fillText('Day 28', W - pad.r - 40, H - 8);
+  const g = x.createLinearGradient(0, pad.t, 0, pad.t + ih); g.addColorStop(0, 'rgba(127,243,230,.35)'); g.addColorStop(1, 'rgba(127,243,230,0)');
+  x.beginPath(); r.days.forEach((d, i) => i ? x.lineTo(X(i), Y(d.pl)) : x.moveTo(X(i), Y(d.pl))); x.lineTo(X(27), pad.t + ih); x.lineTo(X(0), pad.t + ih); x.closePath(); x.fillStyle = g; x.fill();
+  x.beginPath(); r.days.forEach((d, i) => i ? x.lineTo(X(i), Y(d.pl)) : x.moveTo(X(i), Y(d.pl))); x.strokeStyle = '#7ff3e6'; x.lineWidth = 2; x.stroke();
+  const e = r.days[27]; x.fillStyle = '#7ff3e6'; x.beginPath(); x.arc(X(27), Y(e.pl), 4, 0, Math.PI * 2); x.fill();
+  x.fillStyle = '#fff1dc'; x.fillText('players', pad.l + 6, pad.t + 12);
+}
+function run() {
+  ids.forEach(k => { S[k] = +$('#s-' + k).value; });
+  const build = split();
+  $('#o-players').textContent = fmt(S.players); $('#o-spend').textContent = fmt(S.spend); $('#o-viral').textContent = S.viral; $('#o-churn').textContent = S.churn + '%';
+  $('#o-burn').textContent = S.burn + '%'; $('#o-prize').textContent = S.prize + '%'; $('#o-stake').textContent = S.stake + '%';
+  $('#o-build').textContent = `Build fund gets the rest: ${build}%.`;
+  const r = simulate(), first = r.days[0], end = r.days[27];
+  $('#k-pl').textContent = fmt(end.pl); $('#k-burn').textContent = fmt(r.burn); $('#k-prize').textContent = fmt(r.prize); $('#k-stake').textContent = fmt(r.stake); $('#k-daily').textContent = fmt(end.daily);
+  const ratio = end.pl / first.pl, dir = $('#k-dir'), fl = $('#flag');
+  if (ratio > 1.05) { dir.textContent = 'Speeding up'; dir.style.color = 'var(--up)'; fl.className = 'flag good'; fl.textContent = `Prizes bring in players faster than they leave. The season ends with ${Math.round((ratio - 1) * 100)}% more players than it started.`; }
+  else if (ratio < .95) { dir.textContent = 'Slowing down'; dir.style.color = 'var(--down)'; fl.className = 'flag bad'; fl.textContent = `More players leave than prizes bring in, so the wheel loses ${Math.round((1 - ratio) * 100)}% of players by day 28. Lower churn by making the game more fun, or raise the prize share.`; }
+  else { dir.textContent = 'Holding steady'; dir.style.color = 'var(--gold)'; fl.className = 'flag'; fl.textContent = 'New players roughly replace the ones who leave. Small changes in fun or prizes tip it either way.'; }
+  draw(r);
+}
+ids.forEach(k => $('#s-' + k).addEventListener('input', () => { if (['burn', 'prize', 'stake'].includes(k)) { S[k] = +$('#s-' + k).value; clampSplit(k); } run(); }));
+addEventListener('resize', () => draw(simulate()));
+run();
+})();
+</script>
+
+</body>
+</html>
